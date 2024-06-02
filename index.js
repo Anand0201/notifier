@@ -1,5 +1,5 @@
 const notifier = require('node-notifier');
-
+const path = require('path');
 // Simple notification
 notifier.notify({
   title: 'My Notification',
