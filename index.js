@@ -1,53 +1,35 @@
+// File: index.js
+
 const express = require('express');
 const notifier = require('node-notifier');
-const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
-const port = 2000;
+const port = 3000;
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Endpoint to send a simple notification
 app.post('/notify', (req, res) => {
-  const { title, message, sound, wait } = req.body;
+    const { title, message, icon, sound, wait } = req.body;
 
-  notifier.notify({
-    title: title || 'Notification',
-    message: message || 'You have a new notification!',
-    sound: sound || false,
-    wait: wait || false
-  }, (err, response, metadata) => {
-    if (err) {
-      console.error('Notification error:', err);
-      return res.status(500).send({ error: 'Failed to send notification' });
+    if (!title || !message) {
+        return res.status(400).send({ error: 'Title and message are required' });
     }
-    res.send({ response, metadata });
-  });
+
+    notifier.notify({
+        title: title,
+        message: message,
+        icon: icon || path.join(__dirname, 'icon.png'), // optional icon
+        sound: sound || true,  // optional sound
+        wait: wait || false,   // wait with callback until user action is taken on notification
+    }, (err, response) => {
+        if (err) {
+            return res.status(500).send({ error: 'Notification error', details: err });
+        }
+        res.send({ success: true, response: response });
+    });
 });
 
-// Endpoint to send an advanced notification
-app.post('/notify-advanced', (req, res) => {
-  const { title, message, icon, sound, wait, actions, reply } = req.body;
-
-  notifier.notify({
-    title: title || 'Advanced Notification',
-    message: message || 'This is an advanced notification.',
-    icon: icon ? path.resolve(icon) : undefined,
-    sound: sound || false,
-    wait: wait || false,
-    actions: actions || undefined,
-    reply: reply || false
-  }, (err, response, metadata) => {
-    if (err) {
-      console.error('Notification error:', err);
-      return res.status(500).send({ error: 'Failed to send advanced notification' });
-    }
-    res.send({ response, metadata });
-  });
-});
-
-// Start the server
 app.listen(port, () => {
-  console.log(`Notifier API listening at http://localhost:${port}`);
+    console.log(`Notifier API listening at http://localhost:${port}`);
 });
