@@ -1,35 +1,42 @@
-// File: index.js
-
-const express = require('express');
 const notifier = require('node-notifier');
-const path = require('path');
 
-const app = express();
-const port = 3000;
-
-app.use(express.json());
-
-app.post('/notify', (req, res) => {
-    const { title, message, icon, sound, wait } = req.body;
-
-    if (!title || !message) {
-        return res.status(400).send({ error: 'Title and message are required' });
-    }
-
-    notifier.notify({
-        title: title,
-        message: message,
-        icon: icon || path.join(__dirname, 'icon.png'), // optional icon
-        sound: sound || true,  // optional sound
-        wait: wait || false,   // wait with callback until user action is taken on notification
-    }, (err, response) => {
-        if (err) {
-            return res.status(500).send({ error: 'Notification error', details: err });
-        }
-        res.send({ success: true, response: response });
-    });
+// Simple notification
+notifier.notify({
+  title: 'My Notification',
+  message: 'Hello, this is a notification from node-notifier!',
+  sound: true, // Only Notification Center or Windows Toasters
+  wait: true   // Wait with callback until user action is taken on notification
+}, (err, response, metadata) => {
+  if (err) {
+    console.error('Notification error:', err);
+  } else {
+    console.log('Notification response:', response);
+    console.log('Notification metadata:', metadata);
+  }
 });
 
-app.listen(port, () => {
-    console.log(`Notifier API listening at http://localhost:${port}`);
+// Advanced example with options
+notifier.notify({
+  title: 'Advanced Notification',
+  message: 'This notification has more options.',
+  icon: path.join(__dirname, 'icon.png'), // Absolute path (doesn't work on balloons)
+  sound: 'Ping', // Case Sensitive string for location of sound file, or use one of the predefined sounds
+  wait: true, // Wait for User Action against Notification or times out. Same as timeout = 5 seconds
+
+  // The following options are specific to Windows
+  appID: 'com.myapp.id', // Windows only. Refer to the documentation for more info
+  timeout: 5, // Takes precedence over wait if both are defined
+  closeLabel: 'Close', // Action button label on Windows
+  actions: 'Open', // Actions buttons (Windows and Mac)
+
+  // The following options are specific to macOS
+  dropdownLabel: 'Options', // Dropdown label on Mac
+  reply: true // Allow the user to reply (macOS only)
+}, (err, response, metadata) => {
+  if (err) {
+    console.error('Notification error:', err);
+  } else {
+    console.log('Notification response:', response);
+    console.log('Notification metadata:', metadata);
+  }
 });
